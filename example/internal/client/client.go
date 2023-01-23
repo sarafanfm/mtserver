@@ -33,6 +33,7 @@ func (c *Client) Run() {
 
 func (c *Client) grpcV1() {
 	client := v1.NewClient(c.grpcEndpoint)
+	defer client.Close()
 
 	connectionCtx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
@@ -47,6 +48,7 @@ func (c *Client) grpcV1() {
 
 func (c *Client) grpcV2() {
 	client := v2.NewClient(c.grpcEndpoint)
+	defer client.Close()
 
 	connectionCtx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
