@@ -1,0 +1,1 @@
+All folders except `src` in this folder are generated via `protoc`. See `../protoc.sh` file.

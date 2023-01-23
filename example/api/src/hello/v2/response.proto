@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package hello.v2;
+
+option go_package = "github.com/sarafanfm/mtserver/example/api/hello/v2";
+
+message Response {
+    string val = 1;
+}
