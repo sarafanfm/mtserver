@@ -2,7 +2,11 @@ module github.com/sarafanfm/mtserver/example
 
 go 1.19
 
-replace github.com/sarafanfm/mtserver => ../
+replace (
+	github.com/gin-gonic/gin v1.6.3 => github.com/gin-gonic/gin v1.7.4
+	github.com/sarafanfm/mtserver => ../
+	nhooyr.io/websocket v1.8.6 => nhooyr.io/websocket v1.8.7
+)
 
 require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
