@@ -8,3 +8,5 @@ protoc -I ./api/src -I $GATEWAY_PATH \
     --go_out=./api --go_opt=paths=source_relative --go-grpc_out=./api --go-grpc_opt=paths=source_relative \
     --grpc-gateway_out ./api --grpc-gateway_opt logtostderr=true --grpc-gateway_opt paths=source_relative --grpc-gateway_opt generate_unbound_methods=false \
     api/src/**/*.proto
+
+rm -rf api/google

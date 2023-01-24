@@ -5,6 +5,7 @@ package hello;
 option go_package = "github.com/sarafanfm/mtserver/example/api/hello";
 
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 import "hello/v1/request.proto";
 import "hello/v1/response.proto";
 import "hello/v2/request.proto";
@@ -22,6 +23,12 @@ service V2 {
     rpc SayHello (hello.v2.Request) returns (hello.v2.Response) {
         option (google.api.http) = {
             get: "/hello/v2/{val}"
+        };
+    }
+
+    rpc NotifyHello (google.protobuf.Empty) returns (stream hello.v2.Response) {
+        option (google.api.http) = {
+            get: "/hello/v2/notify"
         };
     }
 }

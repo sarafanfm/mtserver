@@ -8,6 +8,7 @@ import (
 	v2 "github.com/sarafanfm/mtserver/example/api/hello/v2"
 	"github.com/sarafanfm/mtserver/example/internal/common"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Client struct {
@@ -28,4 +29,8 @@ func (c *Client) SayHello(ctx context.Context, in string, opts ...grpc.CallOptio
 	defer cancel()
 
 	return c.srv.SayHello(connectionCtx, &v2.Request{Val: in}, opts...)
+}
+
+func (c *Client) NotifyHello(ctx context.Context, opts ...grpc.CallOption) (api.V2_NotifyHelloClient, error) {
+	return c.srv.NotifyHello(ctx, &emptypb.Empty{}, opts...)
 }

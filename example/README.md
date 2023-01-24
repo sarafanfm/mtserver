@@ -6,9 +6,10 @@
 
 also you can open browser with addresses below while server is running
 
-- `http://localhost:8083/hello/v1/Alex` - [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway)
-- `http://localhost:8083/hello/v2/Alex` - gRPC Gateway
+- `http://localhost:8083/hello/v2/notify` - [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway) server-side stream request
+- `http://localhost:8083/hello/v1/Alex` - [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway) unary request
+- `http://localhost:8083/hello/v2/Alex` - [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway) unary request
 - `http://localhost:8083/static/` - static server (cannot handle `/` because of gRPC Gateway handle it)
-- `http://localhost:8084/` - the same static as in previous but in another endpoint
+- `http://localhost:8084/` - the same static as in previous but in another endpoint and can handle `/`
 
 see `Makefile` for understading how it works

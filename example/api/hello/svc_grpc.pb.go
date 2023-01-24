@@ -13,6 +13,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -111,6 +112,7 @@ var V1_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type V2Client interface {
 	SayHello(ctx context.Context, in *v2.Request, opts ...grpc.CallOption) (*v2.Response, error)
+	NotifyHello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (V2_NotifyHelloClient, error)
 }
 
 type v2Client struct {
@@ -130,11 +132,44 @@ func (c *v2Client) SayHello(ctx context.Context, in *v2.Request, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *v2Client) NotifyHello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (V2_NotifyHelloClient, error) {
+	stream, err := c.cc.NewStream(ctx, &V2_ServiceDesc.Streams[0], "/hello.V2/NotifyHello", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &v2NotifyHelloClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type V2_NotifyHelloClient interface {
+	Recv() (*v2.Response, error)
+	grpc.ClientStream
+}
+
+type v2NotifyHelloClient struct {
+	grpc.ClientStream
+}
+
+func (x *v2NotifyHelloClient) Recv() (*v2.Response, error) {
+	m := new(v2.Response)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // V2Server is the server API for V2 service.
 // All implementations must embed UnimplementedV2Server
 // for forward compatibility
 type V2Server interface {
 	SayHello(context.Context, *v2.Request) (*v2.Response, error)
+	NotifyHello(*emptypb.Empty, V2_NotifyHelloServer) error
 	mustEmbedUnimplementedV2Server()
 }
 
@@ -144,6 +179,9 @@ type UnimplementedV2Server struct {
 
 func (UnimplementedV2Server) SayHello(context.Context, *v2.Request) (*v2.Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
+}
+func (UnimplementedV2Server) NotifyHello(*emptypb.Empty, V2_NotifyHelloServer) error {
+	return status.Errorf(codes.Unimplemented, "method NotifyHello not implemented")
 }
 func (UnimplementedV2Server) mustEmbedUnimplementedV2Server() {}
 
@@ -176,6 +214,27 @@ func _V2_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _V2_NotifyHello_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(V2Server).NotifyHello(m, &v2NotifyHelloServer{stream})
+}
+
+type V2_NotifyHelloServer interface {
+	Send(*v2.Response) error
+	grpc.ServerStream
+}
+
+type v2NotifyHelloServer struct {
+	grpc.ServerStream
+}
+
+func (x *v2NotifyHelloServer) Send(m *v2.Response) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // V2_ServiceDesc is the grpc.ServiceDesc for V2 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -188,6 +247,12 @@ var V2_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _V2_SayHello_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "NotifyHello",
+			Handler:       _V2_NotifyHello_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "hello/svc.proto",
 }

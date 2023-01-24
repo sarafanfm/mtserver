@@ -24,6 +24,9 @@ func New(grpcEndpoint, httpEndpoint string) *Client {
 
 // TODO: gRPC-Web requests emulation
 func (c *Client) Run() {
+	go c.grpcServerSideStream("instance1")
+	go c.grpcServerSideStream("instance2")
+
 	c.grpcV1()
 	c.gatewayV1()
 
@@ -53,12 +56,38 @@ func (c *Client) grpcV2() {
 	connectionCtx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	defer cancel()
 
-	ret, err := client.SayHello(connectionCtx, "Alex")
+	ret, err := client.SayHello(connectionCtx, "Bob")
 	if err != nil {
 		panic(err)
 	}
 
 	log.Printf("grpcV2 response: %v", ret)
+}
+
+func (c *Client) grpcServerSideStream(instance string) {
+	client := v2.NewClient(c.grpcEndpoint)
+	defer client.Close()
+
+	connectionCtx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
+	defer cancel()
+
+	stream, err := client.NotifyHello(connectionCtx)
+	if err != nil {
+		panic(err)
+	}
+
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			panic(err)
+		}
+
+		log.Printf("grpcServerSideStream[%s] response: %v", instance, resp)
+	}
 }
 
 func (c *Client) httpParseResponse(resp *http.Response) string {
@@ -72,7 +101,7 @@ func (c *Client) httpParseResponse(resp *http.Response) string {
 }
 
 func (c *Client) gatewayV1() {
-	resp, err := http.Get(c.httpEndpoint + "/hello/v1/Alex")
+	resp, err := http.Get(c.httpEndpoint + "/hello/v1/Alice")
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +110,7 @@ func (c *Client) gatewayV1() {
 }
 
 func (c *Client) gatewayV2() {
-	resp, err := http.Get(c.httpEndpoint + "/hello/v2/Alex")
+	resp, err := http.Get(c.httpEndpoint + "/hello/v2/Carla")
 	if err != nil {
 		panic(err)
 	}
