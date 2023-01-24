@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
 const SHUTDOWN_TIMEOUT_SECONDS = 5
@@ -66,7 +68,13 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 			Run: func() error {
 				log.Printf("starting HTTP server %s at %s", name, endpoint.http.Addr)
 
-				err := endpoint.http.ListenAndServe()
+				var err error
+
+				if opts.TlsDomains != nil && len(opts.TlsDomains) > 0 {
+					err = endpoint.http.Serve(autocert.NewListener(opts.TlsDomains...))
+				} else {
+					err = endpoint.http.ListenAndServe()
+				}
 
 				if err == http.ErrServerClosed {
 					return nil
