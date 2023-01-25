@@ -15,7 +15,7 @@ func NewStreamMap[K comparable, T grpc.ServerStream, P any]() *StreamMap[K, T, P
 	return &StreamMap[K, T, P]{m: make(map[K][]*T)}
 }
 
-func (s *StreamMap[K, T, P]) Add(key K, stream T) error {
+func (s *StreamMap[K, T, P]) Add(key K, stream T, onAdded func()) error {
 	s.mu.Lock()
 	if s.m[key] == nil {
 		s.m[key] = []*T{}
@@ -23,6 +23,10 @@ func (s *StreamMap[K, T, P]) Add(key K, stream T) error {
 	s.m[key] = append(s.m[key], &stream)
 	s.mu.Unlock()
 
+	if onAdded != nil {
+		onAdded()
+	}
+	
 	for {
 		<-stream.Context().Done()
 		s.Remove(key, stream)

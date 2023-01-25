@@ -159,7 +159,7 @@ func (s *Svc) SaveProfile(context context.Context, in *SomeProfile) (*SomeProfil
 }
 
 func (s *Svc) ListenProfile(in *SomeIntegerMessage, stream Svc_ListenProfileServer) error {
-	return s.notifyStreams.Add(in.UserID, stream) // <- add listener
+	return s.notifyStreams.Add(in.UserID, stream, func() { log.Print("New listener was added to map") }) // <- add listener
 }
 ```
 

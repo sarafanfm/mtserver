@@ -30,5 +30,11 @@ func (s *Server) SayHello(context context.Context, req *v2.Request) (*v2.Respons
 }
 
 func (s *Server) NotifyHello(_ *emptypb.Empty, stream hello.V2_NotifyHelloServer) error {
-	return s.notifyStreams.Add("test", stream)
+	return s.notifyStreams.Add(
+		"test",
+		stream,
+		func() {
+			s.notifyStreams.Send("test", &v2.Response{Val: "Added new listener"})
+		},
+	)
 }
