@@ -13,13 +13,13 @@ type Server struct {
 	hello.V2Server
 
 	service *Service
-	notifyStreams *mtserver.StreamMap[string, hello.V2_NotifyHelloServer]
+	notifyStreams *mtserver.StreamMap[string, hello.V2_NotifyHelloServer, *v2.Response]
 }
 
 func NewServer() *Server {
 	return &Server{
 		service: NewService(),
-		notifyStreams: mtserver.NewStreamMap[string, hello.V2_NotifyHelloServer](),
+		notifyStreams: mtserver.NewStreamMap[string, hello.V2_NotifyHelloServer, *v2.Response](),
 	}
 }
 

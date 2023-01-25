@@ -144,12 +144,12 @@ So if we have integer key as user id then we can do something like this:
 
 ```go
 type Svc struct {
-	// generics is: map key (user id is int) and stream type
-	notifyStreams *mtserver.StreamMap[int, Svc_ListenProfileServer]
+	// generics is: map key (user id is int), stream type, payload type
+	notifyStreams *mtserver.StreamMap[int, Svc_ListenProfileServer, *SomeProfile]
 }
 
 func NewSvc() *Svc {
-	return &Svc{notifyStreams: mtserver.NewStreamMap[int, Svc_ListenProfileServer]()}
+	return &Svc{notifyStreams: mtserver.NewStreamMap[int, Svc_ListenProfileServer, *SomeProfile]()}
 }
 
 func (s *Svc) SaveProfile(context context.Context, in *SomeProfile) (*SomeProfile, error) {

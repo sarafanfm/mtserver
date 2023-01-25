@@ -6,16 +6,16 @@ import (
 	"google.golang.org/grpc"
 )
 
-type StreamMap[K comparable, T grpc.ServerStream] struct {
+type StreamMap[K comparable, T grpc.ServerStream, P any] struct {
 	m  map[K][]*T
 	mu sync.RWMutex
 }
 
-func NewStreamMap[K comparable, T grpc.ServerStream]() *StreamMap[K, T] {
-	return &StreamMap[K, T]{m: make(map[K][]*T)}
+func NewStreamMap[K comparable, T grpc.ServerStream, P any]() *StreamMap[K, T, P] {
+	return &StreamMap[K, T, P]{m: make(map[K][]*T)}
 }
 
-func (s *StreamMap[K, T]) Add(key K, stream T) error {
+func (s *StreamMap[K, T, P]) Add(key K, stream T) error {
 	s.mu.Lock()
 	if s.m[key] == nil {
 		s.m[key] = []*T{}
@@ -30,7 +30,7 @@ func (s *StreamMap[K, T]) Add(key K, stream T) error {
 	}
 }
 
-func (s *StreamMap[K, T]) Remove(key K, stream T) {
+func (s *StreamMap[K, T, P]) Remove(key K, stream T) {
 	if s.m[key] == nil {
 		return
 	}
@@ -51,7 +51,7 @@ func (s *StreamMap[K, T]) Remove(key K, stream T) {
 	}
 }
 
-func (s *StreamMap[K, T]) Send(key K, msg interface{}) {
+func (s *StreamMap[K, T, P]) Send(key K, msg P) {
 	if s.m[key] == nil {
 		return
 	}
