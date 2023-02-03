@@ -31,4 +31,10 @@ service V2 {
             get: "/hello/v2/notify"
         };
     }
+
+    rpc ThrowError (google.protobuf.Empty) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/hello/v2/error"
+        };
+    }
 }

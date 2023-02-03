@@ -113,6 +113,7 @@ var V1_ServiceDesc = grpc.ServiceDesc{
 type V2Client interface {
 	SayHello(ctx context.Context, in *v2.Request, opts ...grpc.CallOption) (*v2.Response, error)
 	NotifyHello(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (V2_NotifyHelloClient, error)
+	ThrowError(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type v2Client struct {
@@ -164,12 +165,22 @@ func (x *v2NotifyHelloClient) Recv() (*v2.Response, error) {
 	return m, nil
 }
 
+func (c *v2Client) ThrowError(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/hello.V2/ThrowError", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // V2Server is the server API for V2 service.
 // All implementations must embed UnimplementedV2Server
 // for forward compatibility
 type V2Server interface {
 	SayHello(context.Context, *v2.Request) (*v2.Response, error)
 	NotifyHello(*emptypb.Empty, V2_NotifyHelloServer) error
+	ThrowError(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedV2Server()
 }
 
@@ -182,6 +193,9 @@ func (UnimplementedV2Server) SayHello(context.Context, *v2.Request) (*v2.Respons
 }
 func (UnimplementedV2Server) NotifyHello(*emptypb.Empty, V2_NotifyHelloServer) error {
 	return status.Errorf(codes.Unimplemented, "method NotifyHello not implemented")
+}
+func (UnimplementedV2Server) ThrowError(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ThrowError not implemented")
 }
 func (UnimplementedV2Server) mustEmbedUnimplementedV2Server() {}
 
@@ -235,6 +249,24 @@ func (x *v2NotifyHelloServer) Send(m *v2.Response) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _V2_ThrowError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(V2Server).ThrowError(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/hello.V2/ThrowError",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(V2Server).ThrowError(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // V2_ServiceDesc is the grpc.ServiceDesc for V2 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -245,6 +277,10 @@ var V2_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SayHello",
 			Handler:    _V2_SayHello_Handler,
+		},
+		{
+			MethodName: "ThrowError",
+			Handler:    _V2_ThrowError_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -38,3 +38,8 @@ func (s *Server) NotifyHello(_ *emptypb.Empty, stream hello.V2_NotifyHelloServer
 		},
 	)
 }
+
+func (s *Server) ThrowError(context context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {
+	var errFromBl error = mtserver.NewError("reason", mtserver.ErrForbid)
+	return nil, mtserver.GrpcError(errFromBl)
+}
