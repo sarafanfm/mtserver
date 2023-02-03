@@ -133,6 +133,37 @@ mtserver.RegisterGrpcService(
 
 Now your server can handle HTTP requests defined in `google.api.http` proto annotations.
 
+## Errors
+
+In the standard `error` interface, the `code` field is not taken.
+This module provides the ability to conveniently manage errors.
+
+```go
+// somewhere in business logic layer
+func GetSomething() error {
+	return mtserver.NewError("something not found", mtserver.ErrNotFound)
+}
+
+// inside gRPC service implementation
+func (s *Server) Do(context context.Context, in *SomeInput) (*SomeOutput, error) {
+	if err := GetSomething(); err != nil {
+		return nil, mtserver.GrpcError(err) // <- convert to correct gRPC codes.NotFound
+	} else {
+		return &SomeOutput{}, nil
+	}
+}
+
+// or inside HTTP handler
+func Handler(w http.ResponseWriter, r *http.Request) {
+	if err := GetSomething(); err != nil {
+		w.WriteHeader(mtserver.HttpCode(err)) // <- convert to correct HTTP http.StatusNotFound
+		w.Write([]byte(err.Error()))
+	} else {
+		// ...
+	}
+}
+```
+
 ## StreamMap
 
 Sometimes we need to receive events from the server. For example: user changed his profile. But we must remember that many other users can subscribe to one event.
