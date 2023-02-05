@@ -2,11 +2,6 @@ module github.com/sarafanfm/mtserver
 
 go 1.19
 
-replace (
-	github.com/gin-gonic/gin v1.6.3 => github.com/gin-gonic/gin v1.7.4
-	nhooyr.io/websocket v1.8.6 => nhooyr.io/websocket v1.8.7
-)
-
 require (
 	github.com/joho/godotenv v1.4.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
