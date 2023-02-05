@@ -1,6 +1,11 @@
 module github.com/sarafanfm/mtserver
 
-go 1.19
+go 1.20
+
+replace (
+	github.com/gin-gonic/gin v1.6.3 => github.com/gin-gonic/gin v1.7.4
+	nhooyr.io/websocket v1.8.6 => nhooyr.io/websocket v1.8.7
+)
 
 require (
 	github.com/joho/godotenv v1.4.0
