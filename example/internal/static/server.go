@@ -20,7 +20,6 @@ func NewServer(mux *http.ServeMux, rootURI string) *StaticServer {
 	}
 	s.handle(path + "/web")
 
-	log.Printf("Starting Static Server on %s", rootURI)
 	return s
 }
 
