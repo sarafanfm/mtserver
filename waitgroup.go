@@ -1,7 +1,6 @@
 package mtserver
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -13,7 +12,7 @@ type Job struct {
 	Shutdown func()
 }
 
-func run(jobs ...*Job) {
+func run(onJobError CallbackError, jobs ...*Job) {
 	chTerm := make(chan os.Signal)
 	chErr := make(chan error)
 
@@ -47,7 +46,9 @@ func run(jobs ...*Job) {
 		case <-chTerm:
 			shutdown(jobs...)
 		case err := <-chErr:
-			log.Printf("error in one of processes %v", err)
+			if onJobError != nil {
+				onJobError(err)
+			}
 			shutdown(jobs...)
 		}
 	}()

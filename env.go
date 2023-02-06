@@ -1,7 +1,6 @@
 package mtserver
 
 import (
-	"log"
 	"os"
 	"strings"
 
@@ -13,7 +12,7 @@ const ENV_FILE_VAR = "ENV_FILE"
 func RequiredEnv(envVar string) string {
 	val, ok := os.LookupEnv(envVar)
 	if !ok {
-		log.Fatalf("cannot resolve env var %s", envVar)
+		panic("cannot resolve env var " + envVar)
 	}
 	return val
 }

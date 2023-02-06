@@ -13,6 +13,10 @@ import (
 
 func main() {
     server := mtserver.New()
+	// optionally you can handle any waitgroup job errors
+	server.OnJobError = func(err error) {
+		panic(err)
+	}
 
     // Add endpoints, register gRPC services
 
@@ -42,6 +46,9 @@ Also EndpointOpts can:
 Full EndpointOpts declaration:
 
 ```go
+type Callback func()
+type CallbackError func(error)
+
 &mtserver.EndpointOpts{
 	PORT_GRPC          int
 	PORT_HTTP          int
@@ -51,6 +58,11 @@ Full EndpointOpts declaration:
 	StreamInterceptors []grpc.StreamServerInterceptor
 	GrpcCredentials    credentials.TransportCredentials
 	TlsDomains         []string
+
+	OnStart         Callback
+	OnStartError    CallbackError
+	OnShutdown      Callback
+	OnForceShutdown Callback // if cannot shutdown in 5 secs
 }
 ```
 
@@ -208,7 +220,7 @@ ENV_FILE=/etc/config.env,./.env go run .
 
 See [godotenv](https://github.com/joho/godotenv) for more info.
 
-Also you can use `mtserver.RequiredEnv(string) string` func that will `log.Fatal` if no required env var present.
+Also you can use `mtserver.RequiredEnv(string) string` func that will `panic` if no required env var present.
 
 ```go
 port := mtserver.RequiredEnv("HTTP_PORT")

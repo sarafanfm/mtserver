@@ -3,7 +3,6 @@ package mtserver
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -26,6 +25,11 @@ type EndpointOpts struct {
 	StreamInterceptors []grpc.StreamServerInterceptor
 	GrpcCredentials    credentials.TransportCredentials
 	TlsDomains         []string
+
+	OnStart         Callback
+	OnStartError    CallbackError
+	OnShutdown      Callback
+	OnForceShutdown Callback
 }
 
 type GrpcService[T any] struct {
@@ -50,7 +54,7 @@ func newEndpoint(name string, opts *EndpointOpts) *Endpoint {
 	}
 
 	if opts.PORT_GRPC <= 0 && opts.PORT_HTTP <= 0 {
-		log.Fatal("cannot create Endpoint if gRPC and HTTP both disabled")
+		panic("cannot create Endpoint if gRPC and HTTP both disabled")
 	}
 
 	ret.options = opts
@@ -104,7 +108,7 @@ func newEndpoint(name string, opts *EndpointOpts) *Endpoint {
 
 func RegisterGrpcService[T any](endpoint *Endpoint, svc *GrpcService[T]) {
 	if endpoint.grpc == nil {
-		log.Fatal("cannot register gRPC service on non-gRPC endpoint")
+		panic("cannot register gRPC service on non-gRPC endpoint")
 	}
 	svc.RegisterOnGRPC(endpoint.grpc, svc.Service)
 	if endpoint.gateway != nil && svc.RegisterOnGateway != nil {

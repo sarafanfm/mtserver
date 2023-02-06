@@ -3,7 +3,6 @@ package mtserver
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -13,7 +12,12 @@ import (
 
 const SHUTDOWN_TIMEOUT_SECONDS = 5
 
+type Callback func()
+type CallbackError func(error)
+
 type MTServer struct {
+	OnJobError CallbackError
+
 	jobs []*Job
 	p    map[string]*Endpoint
 }
@@ -25,7 +29,7 @@ func New() *MTServer {
 }
 
 func (m *MTServer) Run() {
-	run(m.jobs...)
+	run(m.OnJobError, m.jobs...)
 }
 
 func (m *MTServer) AddJob(j *Job) {
@@ -42,20 +46,28 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 			Run: func() error {
 				lis, err := net.Listen("tcp", fmt.Sprintf(":%d", endpoint.options.PORT_GRPC))
 				if err != nil {
-					log.Fatalf("failed to start gRPC (HTTP/2) server %s: %v", name, err)
+					if endpoint.options.OnStartError != nil {
+						endpoint.options.OnStartError(err)
+					}
 					return err
 				}
 
-				log.Printf("starting gRPC (HTTP/2) server %s at %s", name, lis.Addr().String())
+				if endpoint.options.OnStart != nil {
+					endpoint.options.OnStart()
+				}
 
 				return endpoint.grpc.Serve(lis)
 			},
 			Shutdown: func() {
-				log.Printf("shutting down gRPC (HTTP/2) server %s", name)
+				if endpoint.options.OnShutdown != nil {
+					endpoint.options.OnShutdown()
+				}
 
 				go func() {
 					time.Sleep(time.Second * SHUTDOWN_TIMEOUT_SECONDS)
-					log.Printf("force terminating gRPC (HTTP/2) server %s", name)
+					if endpoint.options.OnForceShutdown != nil {
+						endpoint.options.OnForceShutdown()
+					}
 					endpoint.grpc.Stop()
 				}()
 
@@ -66,7 +78,9 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 	if endpoint.http != nil {
 		m.jobs = append(m.jobs, &Job{
 			Run: func() error {
-				log.Printf("starting HTTP server %s at %s", name, endpoint.http.Addr)
+				if endpoint.options.OnStart != nil {
+					endpoint.options.OnStart()
+				}
 
 				var err error
 
@@ -82,10 +96,17 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 				return err
 			},
 			Shutdown: func() {
-				log.Printf("shutting down HTTP server %s", name)
+				if endpoint.options.OnShutdown != nil {
+					endpoint.options.OnShutdown()
+				}
 
 				ctx, cancel := context.WithTimeout(context.Background(), SHUTDOWN_TIMEOUT_SECONDS*time.Second)
-				defer cancel()
+				defer func () {
+					if endpoint.options.OnForceShutdown != nil {
+						endpoint.options.OnForceShutdown()
+					}
+					cancel()
+				}()
 
 				endpoint.http.Shutdown(ctx)
 			},
