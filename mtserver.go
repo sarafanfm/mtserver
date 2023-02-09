@@ -78,7 +78,7 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 	if endpoint.http != nil {
 		m.jobs = append(m.jobs, &Job{
 			Run: func() error {
-				if endpoint.options.OnStart != nil {
+				if endpoint.options.OnStart != nil && endpoint.grpc == nil {
 					endpoint.options.OnStart()
 				}
 
@@ -96,7 +96,7 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 				return err
 			},
 			Shutdown: func() {
-				if endpoint.options.OnShutdown != nil {
+				if endpoint.options.OnShutdown != nil && endpoint.grpc == nil {
 					endpoint.options.OnShutdown()
 				}
 
