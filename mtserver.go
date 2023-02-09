@@ -63,12 +63,13 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 					endpoint.options.OnShutdown()
 				}
 
-				time.AfterFunc(SHUTDOWN_TIMEOUT, func() {
+				go func() {
+					time.Sleep(SHUTDOWN_TIMEOUT)
 					if endpoint.options.OnForceShutdown != nil {
 						endpoint.options.OnForceShutdown()
 					}
 					endpoint.grpc.Stop()
-				})
+				}()
 
 				endpoint.grpc.GracefulStop()
 			},
@@ -100,12 +101,7 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 				}
 
 				ctx, cancel := context.WithTimeout(context.Background(), SHUTDOWN_TIMEOUT)
-				defer func() {
-					if endpoint.options.OnForceShutdown != nil {
-						endpoint.options.OnForceShutdown()
-					}
-					cancel()
-				}()
+				defer cancel()
 
 				endpoint.http.Shutdown(ctx)
 			},
