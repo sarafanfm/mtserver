@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-const SHUTDOWN_TIMEOUT_SECONDS = 5
+const SHUTDOWN_TIMEOUT = 5 * time.Second
 
 type Callback func()
 type CallbackError func(error)
@@ -64,7 +64,7 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 				}
 
 				go func() {
-					time.Sleep(time.Second * SHUTDOWN_TIMEOUT_SECONDS)
+					time.Sleep(SHUTDOWN_TIMEOUT)
 					if endpoint.options.OnForceShutdown != nil {
 						endpoint.options.OnForceShutdown()
 					}
@@ -100,7 +100,7 @@ func (m *MTServer) AddEndpoint(name string, opts *EndpointOpts) *Endpoint {
 					endpoint.options.OnShutdown()
 				}
 
-				ctx, cancel := context.WithTimeout(context.Background(), SHUTDOWN_TIMEOUT_SECONDS*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), SHUTDOWN_TIMEOUT)
 				defer func () {
 					if endpoint.options.OnForceShutdown != nil {
 						endpoint.options.OnForceShutdown()
