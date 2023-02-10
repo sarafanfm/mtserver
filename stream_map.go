@@ -55,6 +55,13 @@ func (s *StreamMap[K, T, P]) Remove(key K, stream T) {
 	}
 }
 
+func (s *StreamMap[K, T, P]) Get(key K) []*T {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.m[key]
+}
+
 func (s *StreamMap[K, T, P]) Send(key K, msg P) {
 	if s.m[key] == nil {
 		return
